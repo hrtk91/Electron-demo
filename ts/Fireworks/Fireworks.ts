@@ -13,7 +13,7 @@ class Ball extends Particle {
         this.x += this.v.x;
         this.y += this.v.y;
 
-        this.life -= delta;
+        this.life--;
         this.scale.y = this.scale.x = this.alpha = this.life / this.maxLife;
         if (this.life < 0) {
             this.parent.removeChild(this);
@@ -46,10 +46,10 @@ class Fireworks extends Particle {
 
     public outer(outers: PIXI.Container) {
         const baserad = (2 * Math.PI) / this.outers.children.length;
-        this.outers.children.forEach((p, i, ary) => {
-            (p as Particle).v = new Vector2(Math.cos(i * baserad), Math.sin(i * baserad));
-            (p as Particle).v.normalize();
-            (p as Particle).v.mul(this.flowerRadius);
+        this.outers.children.forEach((p, i) => {
+            (p as Ball).v = new Vector2(Math.cos(i * baserad), Math.sin(i * baserad));
+            (p as Ball).v.normalize();
+            (p as Ball).v.mul(this.flowerRadius);
         });
     }
 
@@ -59,7 +59,7 @@ class Fireworks extends Particle {
         for (var i = 0; i < flowersNum; i++) {
             var p = new Ball({
                 type: PIXI.SHAPES.CIRC,
-                life: 100,
+                life: 180,
                 fillValue: this.fillValue,
                 blendMode: PIXI.BLEND_MODES.ADD,
                 radius: option.radius || 3
@@ -71,10 +71,10 @@ class Fireworks extends Particle {
     }
     public inner(inners: PIXI.Container) {
         const baserad = (2 * Math.PI) / this.inners.children.length;
-        this.inners.children.forEach((p, i: number, ary: any[]) => {
-            (p as Particle).v = new Vector2(Math.cos(i * baserad), Math.sin(i * baserad));
-            (p as Particle).v.normalize();
-            (p as Particle).v.mul(Math.random() * this.flowerRadius);
+        this.inners.children.forEach((p, i: number) => {
+            (p as Ball).v = new Vector2(Math.cos(i * baserad), Math.sin(i * baserad));
+            (p as Ball).v.normalize();
+            (p as Ball).v.mul(Math.random() * this.flowerRadius);
         });
     }
 
@@ -84,7 +84,7 @@ class Fireworks extends Particle {
         for (var i = 0; i < flowerNum; i++) {
             var p = new Ball({
                 type: PIXI.SHAPES.CIRC,
-                life: 100,
+                life: 180,
                 fillValue: this.fillValue >> 1,
                 blendMode: PIXI.BLEND_MODES.ADD,
                 radius: option.radius || 5

@@ -14,6 +14,7 @@ class Application {
     protected text: PIXI.Text
     protected particleType: number
     protected pairs: { body: Matter.Body, graphic: Particle }[]
+    protected count: number
     
     constructor() {
         /* PIXIアプリケーション作成 */
@@ -32,7 +33,6 @@ class Application {
         engine.world.gravity.x = 0;
         engine.world.gravity.y = 0;
 
-        // const circ = Matter.Bodies.circle(app.view.width / 2, 0, 5);
         const ground = Matter.Bodies.rectangle(app.view.width / 2, app.view.height - 60, app.view.width, 60, { isStatic: true });
         Matter.World.add(engine.world, [
             ground,
@@ -112,7 +112,8 @@ class Application {
         shapeButton.style.fill = 0xffffff;
 
         app.renderer.backgroundColor = 0x061639;
-        // app.renderer.autoResize = true;
+        app.renderer.autoResize = true;
+        this.count = 0;
         app.stage.position.set(0, 0);
         app.stage.addChild(particles);
         app.stage.addChild(fires);
@@ -126,6 +127,7 @@ class Application {
         Matter.Events.on(this.engine, 'afterUpdate', this.update);
         Matter.Engine.run(this.engine);
         this.pixiApp.ticker.add(this.tick);
+        this.pixiApp.ticker.add(this.fireworks);
     }
 
     public update = (evt: { timestamp: number }): void => {
@@ -177,121 +179,49 @@ class Application {
                 particle.attachBody();
                 this.particles.addChild(particle);
     
-                // const body = Matter.Bodies.circle(options.x, options.y, options.radius);
                 const rad = Math.PI * (-1 + Math.random() * 2);
                 if (particle.body) {
-                    Matter.Body.setVelocity(particle.body, new Vector2(Math.cos(rad) * 10, Math.sin(rad) * 10));
-                    particle.body.restitution = 1;
-                    // body.velocity.x = Math.cos(rad);
-                    // body.velocity.y = Math.sin(rad);
-                    particle.body.frictionAir = 0;
-                    this.pairs.push({ body: particle.body, graphic: particle });
+                    const body = particle.body;
+                    Matter.Body.setVelocity(body, new Vector2(Math.cos(rad) * 10, Math.sin(rad) * 10));
+                    body.restitution = 1;
+                    body.velocity.x = Math.cos(rad);
+                    body.velocity.y = Math.sin(rad);
+                    body.frictionAir = 0;
+                    this.pairs.push({ body: body, graphic: particle });
 
-                    Matter.World.add(this.engine.world, particle.body);
+                    Matter.World.add(this.engine.world, body);
                 }
             }
         }
         this.text.text = this.particles.children.length.toString();
         this.particles.children.forEach(p => p instanceof Particle && p.update(delta));
     }
+
+    public fireworks = (delta: number) => {
+        if (this.count++ % 10 === 0) {
+            const p = new Fireworks({
+                x: Math.random() * this.pixiApp.view.width,
+                y: this.pixiApp.view.height,
+                v: new Vector2(0, -( 2 + ( Math.random() * 2 ) )),
+                radius: 1,
+                life: Math.ceil(60 * (1 + Math.random())),
+                type: PIXI.SHAPES.CIRC,
+                blendMode: PIXI.BLEND_MODES.ADD,
+                fillValue: hsl(Math.ceil(Math.random() * 360), 75, 50),
+                flowerNum: 150,
+                flowerRadius: 0.5 + Math.random()
+            });
+            p.init();
+            this.fires.addChild(p);
+        }
+
+        this.fires.children.forEach((particle: PIXI.DisplayObject) => {
+            if (particle instanceof Fireworks) {
+                particle.update(1000/60);
+            }
+        });
+    }
 }
 
 const app = new Application();
 app.start();
-// app.ticker.add((delta) => Matter.Engine.update(engine, delta));
-// app.ticker.add(tick);
-// app.ticker.add(fireworks);
-// Matter.Events.on(engine, 'afterUpdate', fireworks);
-// Matter.Events.on(engine, 'afterUpdate', tick);
-
-// const fires = new PIXI.Container();
-// let count = 0;
-// function fireworks(delta: number): void {
-//     if (count++ % 10 === 0) {
-//         const p = new Fireworks({
-//             x: Math.random() * 1200,
-//             y: 900,
-//             v: new Vector2(0, -( 2 + ( Math.random() * 2 ) )),
-//             radius: 1,
-//             life: Math.ceil(60 * (1 + Math.random())),
-//             type: PIXI.SHAPES.CIRC,
-//             blendMode: PIXI.BLEND_MODES.ADD,
-//             fillValue: hsl(Math.ceil(Math.random() * 360), 75, 50),
-//             flowerNum: 150,
-//             flowerRadius: 0.5 + Math.random()
-//         });
-//         p.init();
-//         fires.addChild(p);
-//     }
-//     fires.children.forEach((particle: PIXI.DisplayObject) => (particle as Particle).update(delta) );
-// }
-
-// function tick(delta: number): void {
-//     if (touchEvent.touched) {
-//         for (let i = 0; i < 5; i++) {
-//             const particle = new Particle({
-//                 x: touchEvent.x,
-//                 y: touchEvent.y,
-//                 type: ParticleType,
-//                 life: 120 + (Math.random() * app.ticker.FPS),
-//                 blendMode: PIXI.BLEND_MODES.ADD,
-//                 radius: app.view.width / 100,
-//                 fillValue: hsl(Math.round(Math.random() * 360), 75, 50)
-//                 // fillValue: 0xff7711,
-//             });
-//             particle.init();
-
-//             const rad = Math.PI * (-1 + Math.random() * 2);
-//             particle.v.x = Math.cos(rad);
-//             particle.v.y = Math.sin(rad);
-            
-//             particles.addChild(particle);
-//         }
-//     }
-
-//     text.text = particles.children.length.toString();
-
-//     particles.children.forEach((particle: PIXI.DisplayObject) => {
-//         if (particle instanceof Particle) {
-//             particle.update(delta);
-
-//             particle.x += particle.v.x;
-//             particle.y += particle.v.y;
-    
-//             particle.life -= delta;
-//             particle.scale.y
-//                 = particle.scale.x
-//                 = particle.alpha
-//                 = particle.life / particle.maxLife;
-            
-//             if (Math.ceil(particle.life) % 4 == 0) {
-//                 particle.setFill(particle.fillValue, 0.5);
-//             }
-//             if (Math.ceil(particle.life) % 10 == 0) {
-//                 particle.setFill(particle.fillValue, 0.75);
-//             }
-
-//             if (particle.life < 0) {
-//                 particle.parent.removeChild(particle);
-//             }
-    
-//             if (particle.x > app.view.width) {
-//                 particle.x = app.view.width;
-//                 particle.v.x = -particle.v.x;
-//             }
-//             else if (particle.x < 0) {
-//                 particle.x = 0;
-//                 particle.v.x = -particle.v.x;
-//             }
-    
-//             if (particle.y > app.view.height) {
-//                 particle.y = app.view.height;
-//                 particle.v.y = -particle.v.y;
-//             }
-//             else if (particle.y < 0) {
-//                 particle.y = 0;
-//                 particle.v.y = -particle.v.y;
-//             }
-//         }
-//     });
-// }
