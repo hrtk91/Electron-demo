@@ -21,7 +21,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/matter-js": "^0.10.3",
-    "electron": "^6.0.10",
+    "electron": "^9.4.0",
     "matter-js": "^0.14.2",
     "pixi.js": "^5.1.4"
   }
